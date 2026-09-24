@@ -1,0 +1,14 @@
+{
+  "project": "guestgraph-io-mcp",
+  "project_number": "763196875331",
+  "billing_account": "011DEB-4A45A0-3A52BB",
+  "region": "europe-west6",
+  "domain": "mcp.guestgraph.io",
+  "site_id": "mcp-guestgraph-io",
+  "repository": "guestgraph/mcp-guestgraph-io",
+  "repository_id": "1385958042",
+  "registry_name": "io.guestgraph/mental-model",
+  "registry_domain": "guestgraph.io",
+  "budget_chf": 40,
+  "run_host": ""
+}
