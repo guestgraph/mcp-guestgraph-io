@@ -53,7 +53,12 @@ What the owner does once, because Terraform cannot do it or CI cannot yet sign i
 
         terraform -chdir=infra/chat init
 
-5. Give the chat its key: create the Secret Manager secret `chat-anthropic-key` in this project, add the Anthropic API key as its first version, and grant the chat's runtime account read access, as `companygraph/chat-server`'s README says. The key never enters the repository.
+5. Give the chat its key, from a workspace of its own in the Anthropic Console with a monthly spend limit. The secret is made once, the key goes in on stdin and never in a file, and the read access is granted once the merge's apply has made the runtime account `chat-run@`:
+
+        gcloud services enable secretmanager.googleapis.com --project guestgraph-io-mcp
+        gcloud secrets create chat-anthropic-key --replication-policy automatic --project guestgraph-io-mcp
+        printf '%s' "$KEY" | gcloud secrets versions add chat-anthropic-key --data-file=- --project guestgraph-io-mcp
+        gcloud secrets add-iam-policy-binding chat-anthropic-key --member serviceAccount:chat-run@guestgraph-io-mcp.iam.gserviceaccount.com --role roles/secretmanager.secretAccessor --project guestgraph-io-mcp
 
 6. Merge the pull request. The first deploy of each service fails at its live check by design, and the apply's warning names the host Cloud Run gave it; write them into `deployment.json` and `chat/chat.json` as `run_host` and merge that.
 
