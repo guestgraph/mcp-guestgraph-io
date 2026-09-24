@@ -1,0 +1,11 @@
+{
+  "domain": "chat.guestgraph.io",
+  "site_id": "chat-guestgraph-io",
+  "mcp_url": "https://mcp.guestgraph.io/mcp",
+  "origins": [
+    "https://guestgraph.io"
+  ],
+  "month_tokens": 18500000,
+  "run_host": "",
+  "provider": "anthropic"
+}
