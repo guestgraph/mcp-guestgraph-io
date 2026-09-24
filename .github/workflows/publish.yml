@@ -1,5 +1,10 @@
-# The registry entry is the server's own workflow, called by the release package.json pins; it
-# runs in the `registry` environment, whose review gate and signing key stay this repository's.
+# The registry entry, published from this repository's own `registry` environment, whose review
+# gate and signing key stay here. It runs the steps of companygraph/mcp-server's registry.yml at
+# the release package.json pins, written out rather than called: a reusable workflow in another
+# organization receives no secret from `secrets: inherit`, so the called job saw MCP_PRIVATE_KEY
+# empty and mcp-publisher refused to log in. The deploy workflows can still call the shared ones,
+# because they sign in with OIDC and need no secret. Keep these steps in step with registry.yml
+# when the server pin moves.
 name: publish
 on:
   push:
@@ -8,5 +13,30 @@ permissions:
   contents: read
 jobs:
   publish:
-    uses: companygraph/mcp-server/.github/workflows/registry.yml@v0.29.0
-    secrets: inherit
+    runs-on: ubuntu-latest
+    environment: registry
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx companygraph-mcp-deploy snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npx companygraph-mcp-deploy page-css
+      - run: npx companygraph-mcp-deploy jsonld
+      # The page checks open a browser: they measure the rendered page rather than read the
+      # stylesheet, which is the only way to see a gutter that did not apply or a wordmark that
+      # broke. Chromium alone, and only here, because nothing the image runs needs one.
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: npx companygraph-mcp-deploy server-json "${GITHUB_REF_NAME#v}"
+      - run: cat dist/server.json
+      - run: curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - working-directory: dist
+        env:
+          MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
+        run: ../mcp-publisher login dns --domain "$(jq -r .registry_domain ../deployment.json)" --private-key "$MCP_PRIVATE_KEY"
+      - working-directory: dist
+        run: ../mcp-publisher publish

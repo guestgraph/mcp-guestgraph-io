@@ -23,7 +23,7 @@ Add `https://mcp.guestgraph.io/mcp` as a custom connector in Claude, or as a rem
 
 ## Infrastructure
 
-`infra/bootstrap/` is applied by the owner, with the state `infra/bootstrap/README.md` says how to restore, and holds what CI needs before it can authenticate: the state bucket, the identity pool, the service accounts and the image registry. A pull request plans as `terraform-plan@`, which reads and changes nothing, and only a run on `main` may apply as `terraform@` or push as `deploy@`. `infra/` is applied by CI on every merge: its state in the bucket the bootstrap made, and one call into the module `companygraph/mcp-server` ships under `deploy/terraform`, with this deployment's own values read from `deployment.json`. The two workflows in `.github/workflows/` only call the package's own `deployment.yml` and `registry.yml`, by the release `package.json` pins.
+`infra/bootstrap/` is applied by the owner, with the state `infra/bootstrap/README.md` says how to restore, and holds what CI needs before it can authenticate: the state bucket, the identity pool, the service accounts and the image registry. A pull request plans as `terraform-plan@`, which reads and changes nothing, and only a run on `main` may apply as `terraform@` or push as `deploy@`. `infra/` is applied by CI on every merge: its state in the bucket the bootstrap made, and one call into the module `companygraph/mcp-server` ships under `deploy/terraform`, with this deployment's own values read from `deployment.json`. `deploy.yml` only calls the package's own `deployment.yml`, by the release `package.json` pins. `publish.yml` runs the steps of the package's `registry.yml` itself, because a workflow in another organization receives no secret, and the Registry's signing key has to reach the job; its comment says to keep the steps in step with the release.
 
 Publishing to the MCP Registry runs in the `registry` environment, which requires the owner's review of every run. The signing key lives there as an environment secret, `MCP_PRIVATE_KEY`, never as a repository secret, because a repository secret would be readable by any workflow on any branch and the review gate would protect nothing.
 
@@ -81,9 +81,9 @@ What the owner does once, because Terraform cannot do it or CI cannot yet sign i
         openssl pkey -in "$K/key.pem" -noout -text | grep -A3 'priv:' | tail -n +2 | tr -d ' :\n' | gh secret set MCP_PRIVATE_KEY --env registry --repo guestgraph/mcp-guestgraph-io
         rm -rf "$K"
 
-10. Once the server is live and the model's surfaces are merged, tag `v1.0.0` on `main` and approve the `registry` run:
+10. Once the server is live and the model's surfaces are merged, tag the deployment's version, `v0.1.0` for the first entry, on `main` and approve the `registry` run:
 
-        git fetch origin && git tag v1.0.0 origin/main && git push origin v1.0.0
+        git fetch origin && git tag v0.1.0 origin/main && git push origin v0.1.0
 
 ## The chat
 
