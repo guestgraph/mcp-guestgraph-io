@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "^2.1.0",
-    "@robertblust/design": "github:robertblust/design#v0.83.0",
+    "@robertblust/design": "github:robertblust/design#v0.84.2",
     "playwright": "^1.63.0"
   }
 }
