@@ -53,12 +53,9 @@ What the owner does once, because Terraform cannot do it or CI cannot yet sign i
 
         terraform -chdir=infra/chat init
 
-5. Give the chat its key, from a workspace of its own in the Anthropic Console with a monthly spend limit. The secret is made once, the key goes in on stdin and never in a file, and the read access is granted once the merge's apply has made the runtime account `chat-run@`:
+5. Connect the chat to the Anthropic API with no key, in the Anthropic Console under Settings, Workload identity, in a workspace with a monthly spend limit: a rule with audience `https://api.anthropic.com` matching the claims `sub`, the number the command prints, and `email`, `chat-run@guestgraph-io-mcp.iam.gserviceaccount.com`, scope `workspace:developer`, lifetime six hundred seconds, for an Anthropic service account in that workspace. The runtime account exists once the merge's apply has made it, so the rule's, the organization's, the service account's and the workspace's ids go into `chat/chat.json` as `anthropic_federation` with `run_host` in step 6's second merge; they are no credential:
 
-        gcloud services enable secretmanager.googleapis.com --project guestgraph-io-mcp
-        gcloud secrets create chat-anthropic-key --replication-policy automatic --project guestgraph-io-mcp
-        printf '%s' "$KEY" | gcloud secrets versions add chat-anthropic-key --data-file=- --project guestgraph-io-mcp
-        gcloud secrets add-iam-policy-binding chat-anthropic-key --member serviceAccount:chat-run@guestgraph-io-mcp.iam.gserviceaccount.com --role roles/secretmanager.secretAccessor --project guestgraph-io-mcp
+        gcloud iam service-accounts describe chat-run@guestgraph-io-mcp.iam.gserviceaccount.com --format='value(uniqueId)' --project guestgraph-io-mcp
 
 6. Merge the pull request. The first deploy of each service fails at its live check by design, and the apply's warning names the host Cloud Run gave it; write them into `deployment.json` and `chat/chat.json` as `run_host` and merge that.
 
