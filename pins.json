@@ -1,0 +1,11 @@
+{
+  "pins": [
+    { "kind": "conventions", "file": "conventions.json", "repo": "robertblust/conventions" },
+    { "kind": "npm-tag", "file": "package.json", "repo": "companygraph/mcp-server" },
+    { "kind": "npm-tag", "file": "package.json", "repo": "robertblust/design" },
+    { "kind": "npm-tag", "file": "chat/package.json", "repo": "companygraph/chat-server", "after": ["npm install --prefix chat"] },
+    { "kind": "npm-tag", "file": "chat/package.json", "repo": "robertblust/design", "after": ["npm install --prefix chat"] },
+    { "kind": "source-commit", "file": "source.json", "repo": "guestgraph/mental-model" }
+  ],
+  "verify": ["npm run snapshot", "npm run page-css", "npm run jsonld", "npm test", "npm run page-css --prefix chat", "npm test --prefix chat"]
+}
