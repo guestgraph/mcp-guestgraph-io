@@ -41,6 +41,8 @@ module "chat" {
   run_host             = local.c.run_host
   model_provider       = lookup(local.c, "provider", "vertex")
   anthropic_federation = try(local.c.anthropic_federation, null)
+  verdict              = lookup(local.c, "verdict", false)
+  verdict_threshold    = lookup(local.c, "verdict_threshold", null)
   image                = var.image
 }
 
